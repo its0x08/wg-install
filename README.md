@@ -9,7 +9,7 @@ This script will install automatically the Wireguard server and generate client 
 
 
 ```
-git clone https://github.com/its0x08/wg-install;chmod +x wg-install.sh;bash wireguard-install.sh
+git clone https://github.com/its0x08/wg-install;chmod +x wg-install.sh;bash wg-install.sh
 ```
 
 Once it finishes, you can run it again to generate more users. Reboot your server to apply all settings.
