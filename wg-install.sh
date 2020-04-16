@@ -2,34 +2,36 @@
 
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
-function get_free_udp_port
+function generate_port
 {
     local port=$(shuf -i 2000-65000 -n 1)
     ss -lau | grep $port > /dev/null
     if [[ $? == 1 ]] ; then
         echo "$port"
     else
-        get_free_udp_port
+        generate_port
     fi
 }
 
 if [[ "$EUID" -ne 0 ]]; then
-    echo "Sorry, you need to run this as root"
+    echo "[-] Sorry, you need to run this as root"
     exit
 fi
 
 if [[ ! -e /dev/net/tun ]]; then
-    echo "The TUN device is not available. You need to enable TUN before running this script"
+    echo "[-] The TUN device is not available. You need to enable TUN before running this script"
     exit
 fi
 
 
 if [ -e /etc/centos-release ]; then
     DISTRO="CentOS"
+    echo "[i] OS: " $DISTRO
 elif [ -e /etc/debian_version ]; then
     DISTRO=$( lsb_release -is )
+    echo "[i] OS: " $DISTRO
 else
-    echo "Your distribution is not supported (yet)"
+    echo "[-] Your distribution is not supported (yet)"
     exit
 fi
 
@@ -41,18 +43,18 @@ if [ ! -f "$WG_CONFIG" ]; then
     GATEWAY_ADDRESS="${PRIVATE_SUBNET::-4}1"
 
     if [ "$SERVER_HOST" == "" ]; then
-        SERVER_HOST=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
+        SERVER_HOST=$(hostname -I)
         if [ "$INTERACTIVE" == "yes" ]; then
-            read -p "Servers public IP address is $SERVER_HOST. Is that correct? [y/n]: " -e -i "y" CONFIRM
+            read -p "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
             if [ "$CONFIRM" == "n" ]; then
-                echo "Aborted. Use environment variable SERVER_HOST to set the correct public IP address"
+                echo "[-] Aborted. Use environment variable SERVER_HOST to set the correct public IP address"
                 exit
             fi
         fi
     fi
 
     if [ "$SERVER_PORT" == "" ]; then
-        SERVER_PORT=$( get_free_udp_port )
+        SERVER_PORT=$( generate_port )
     fi
 
     if [ "$CLIENT_DNS" == "" ]; then
@@ -60,7 +62,9 @@ if [ ! -f "$WG_CONFIG" ]; then
         echo "   1) Cloudflare"
         echo "   2) Google"
         echo "   3) OpenDNS"
-        read -p "DNS [1-3]: " -e -i 1 DNS_CHOICE
+        echo "   4) Quad9"
+        echo "   5) AdGuard DNS"
+        read -p "[?] DNS [1-4]: " -e -i 1 DNS_CHOICE
 
         case $DNS_CHOICE in
             1)
@@ -71,6 +75,12 @@ if [ ! -f "$WG_CONFIG" ]; then
             ;;
             3)
             CLIENT_DNS="208.67.222.222,208.67.220.220"
+            ;;
+            4)
+            CLIENT_DNS="9.9.9.9"
+            ;;
+            5)
+            CLIENT_DNS="176.103.130.130,176.103.130.131"
             ;;
         esac
     fi
@@ -146,14 +156,14 @@ qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
     systemctl start wg-quick@wg0.service
 
     # TODO: unattended updates, apt install dnsmasq ntp
-    echo "Client config --> $HOME/client-wg0.conf"
-    echo "Now reboot the server and enjoy your fresh VPN installation! :^)"
+    echo "[+] Client config --> $HOME/client-wg0.conf"
+    echo "[+] Now reboot the server and enjoy your fresh VPN installation! :^)"
 else
     ### Server is installed, add a new client
     CLIENT_NAME="$1"
     if [ "$CLIENT_NAME" == "" ]; then
-        echo "Tell me a name for the client config file. Use one word only, no special characters."
-        read -p "Client name: " -e CLIENT_NAME
+        echo "[?] Tell me a name for the client config file [no special characters]."
+        read -p "[+] Client name: " -e CLIENT_NAME
     fi
     CLIENT_PRIVKEY=$( wg genkey )
     CLIENT_PUBKEY=$( echo $CLIENT_PRIVKEY | wg pubkey )
@@ -181,5 +191,5 @@ PersistentKeepalive = 25" > $HOME/$CLIENT_NAME-wg0.conf
 qrencode -t ansiutf8 -l L < $HOME/$CLIENT_NAME-wg0.conf
 
     ip address | grep -q wg0 && wg set wg0 peer "$CLIENT_PUBKEY" allowed-ips "$CLIENT_ADDRESS/32"
-    echo "Client added, new configuration file --> $HOME/$CLIENT_NAME-wg0.conf"
+    echo "[+] Client added, new configuration file --> $HOME/$CLIENT_NAME-wg0.conf"
 fi
