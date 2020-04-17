@@ -1,4 +1,4 @@
-# wg-install v0.0-3
+# wg-install v20200417-1
 WireGuard autoinstaller written in Bash
 
 [WireGuard](https://www.wireguard.com) [road warrior](http://en.wikipedia.org/wiki/Road_warrior_%28computing%29) installer for Debian 9, CentOS 7 and Ubuntu 18.04 LTS!
@@ -9,7 +9,7 @@ This script will install automatically the Wireguard server and generate client 
 
 
 ```
-cd /opt;wget http://bit.ly/2MxtX8s -O wg.sh;chmod +x wg.sh;bash wg.sh
+cd /opt;wget https://git.io/Jff1k -nc -O wg.sh;chmod +x wg.sh;./wg.sh
 ```
 
 Once it finishes, you can run it again to generate more users. Reboot your server to apply all settings.
@@ -30,7 +30,7 @@ Copy the file `/root/client-wg0.conf` from a remote server to your local PC path
 
 ## Server status:
 
-To show VPN status, run `wg show`.
+To show VPN status, run `wg`.
 
 ### Enjoy it !
 
