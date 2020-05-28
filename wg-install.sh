@@ -172,6 +172,7 @@ else
     SERVER_ENDPOINT=$( head -n1 $WG_CONFIG | awk '{print $3}')
     SERVER_PUBKEY=$( head -n1 $WG_CONFIG | awk '{print $5}')
     CLIENT_DNS=$( head -n1 $WG_CONFIG | awk '{print $6}')
+    SERVER_PORT=$( head -n1 $WG_CONFIG | awk '{print $4}')
     LASTIP=$( grep "/32" $WG_CONFIG | tail -n1 | awk '{print $3}' | cut -d "/" -f 1 | cut -d "." -f 4 )
     CLIENT_ADDRESS="${PRIVATE_SUBNET::-4}$((LASTIP+1))"
     echo "# $CLIENT_NAME
@@ -186,7 +187,7 @@ DNS = $CLIENT_DNS
 [Peer]
 PublicKey = $SERVER_PUBKEY
 AllowedIPs = 0.0.0.0/0, ::/0 
-Endpoint = $SERVER_ENDPOINT
+Endpoint = $SERVER_ENDPOINT:$SERVER_PORT
 PersistentKeepalive = 25" > $HOME/$CLIENT_NAME-wg0.conf
 qrencode -t ansiutf8 -l L < $HOME/$CLIENT_NAME-wg0.conf
 
