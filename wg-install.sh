@@ -170,7 +170,7 @@ else
     PRIVATE_SUBNET=$( head -n1 $WG_CONFIG | awk '{print $2}')
     PRIVATE_SUBNET_MASK=$( echo $PRIVATE_SUBNET | cut -d "/" -f 2 )
     SERVER_ENDPOINT=$( head -n1 $WG_CONFIG | awk '{print $3}')
-    SERVER_PUBKEY=$( head -n1 $WG_CONFIG | awk '{print $4}')
+    SERVER_PUBKEY=$( head -n1 $WG_CONFIG | awk '{print $5}')
     CLIENT_DNS=$( head -n1 $WG_CONFIG | awk '{print $6}')
     LASTIP=$( grep "/32" $WG_CONFIG | tail -n1 | awk '{print $3}' | cut -d "/" -f 1 | cut -d "." -f 4 )
     CLIENT_ADDRESS="${PRIVATE_SUBNET::-4}$((LASTIP+1))"
