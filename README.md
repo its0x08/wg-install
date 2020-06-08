@@ -1,7 +1,7 @@
-# wg-install v20200603-1
+# wg-install v20200608-1
 WireGuard autoinstaller written in Bash
 
-[WireGuard](https://www.wireguard.com) [road warrior](http://en.wikipedia.org/wiki/Road_warrior_%28computing%29) installer for Debian 9, CentOS 7 and Ubuntu 18.04 LTS!
+[WireGuard](https://www.wireguard.com) [road warrior](http://en.wikipedia.org/wiki/Road_warrior_%28computing%29) installer for Debian 9, CentOS 7 and Ubuntu!
 
 This script will install automatically the Wireguard server and generate client configuration files for a secure connection.
 
