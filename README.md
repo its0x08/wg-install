@@ -18,7 +18,8 @@ bash wg.sh
 ```
 Once it finishes, you can run it again to generate more users. Reboot your server to apply all settings.
 
-## To start/activate the Wireguard client: `wg-quick up config_name`
+## To start/activate the Wireguard client: 
+`wg-quick up config_name`
 
 ## Options:
 
