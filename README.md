@@ -7,7 +7,8 @@ This script will install automatically the Wireguard server and generate client 
 
 ## Usage command:
 
-### Oneliner: `wget http://git.io/Jff1k -qO wg.sh && bash wg.sh`
+### Oneliner: 
+`wget http://git.io/Jff1k -qO wg.sh && bash wg.sh`
 
 ### Steps to download and run the scripts:
 ```
