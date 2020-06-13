@@ -59,12 +59,12 @@ if [ ! -f "$WG_CONFIG" ]; then
 
     if [ "$CLIENT_DNS" == "" ]; then
         echo "Which DNS do you want to use with the VPN?"
-        echo "   1) Cloudflare"
+        echo "   1) Cloudflare (fastest DNS)"
         echo "   2) Google"
-        echo "   3) OpenDNS"
-        echo "   4) Quad9"
-        echo "   5) AdGuard DNS"
-        read -p "[?] DNS [1-4]: " -e -i 1 DNS_CHOICE
+        echo "   3) OpenDNS (has phishing protection and other security filters)"
+        echo "   4) Quad9 (Malware protection)"
+        echo "   5) AdGuard DNS (automatically blocks ads)"
+        read -p "[?] DNS (1-5)[1]: " -e -i 1 DNS_CHOICE
 
         case $DNS_CHOICE in
             1)
