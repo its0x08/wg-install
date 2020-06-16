@@ -45,3 +45,5 @@ To check VPN status, run `wg`.
 ## Enjoy it !
 
 #### Note: dont forget to report bugs please!!
+
+[Buy me a beer or coffe.](https://www.paypal.me/begaj)
