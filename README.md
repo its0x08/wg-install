@@ -8,11 +8,11 @@ This script will install automatically the Wireguard server and generate client 
 ## Usage command
 
 ### Oneliner: 
-`wget http://git.io/Jff1k -qO wg.sh && bash wg.sh`
+`wget https://raw.githubusercontent.com/besmirzanaj/wg-install/master/wg-install.sh -qO wg.sh && bash wg.sh`
 
 ### Steps to download and run the scripts:
 ```
-git clone https://github.com/its0x08/wg-install.git
+git clone https://github.com/besmirzanaj/wg-install.git
 cd wg-install
 bash wg.sh
 ```
@@ -44,6 +44,3 @@ To check VPN status, run `wg`.
 
 ## Enjoy it !
 
-#### Note: dont forget to report bugs please!!
-
-[Buy me a beer or coffe.](https://www.paypal.me/begaj)
