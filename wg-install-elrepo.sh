@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# wg-install.sh
+# run on the first time to configure teh server and the first client certificate.
+# the following times it will just generate client configs
+# Besmir Zanaj - 2020
+
+
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
 function generate_port
@@ -41,9 +47,10 @@ if [ ! -f "$WG_CONFIG" ]; then
     PRIVATE_SUBNET=${PRIVATE_SUBNET:-"10.9.0.0/24"}
     PRIVATE_SUBNET_MASK=$( echo $PRIVATE_SUBNET | cut -d "/" -f 2 )
     GATEWAY_ADDRESS="${PRIVATE_SUBNET::-4}1"
+    #GATEWAY_ADDRESS=$(route -n | awk '$1 == "0.0.0.0" {print $2}')
 
     if [ "$SERVER_HOST" == "" ]; then
-        SERVER_HOST=$(hostname -i)
+        SERVER_HOST=$(curl ifconfig.me)
         if [ "$INTERACTIVE" == "yes" ]; then
             read -p "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
             if [ "$CONFIRM" == "n" ]; then
@@ -59,12 +66,12 @@ if [ ! -f "$WG_CONFIG" ]; then
 
     if [ "$CLIENT_DNS" == "" ]; then
         echo "Which DNS do you want to use with the VPN?"
-        echo "   1) Cloudflare (fastest DNS)"
-        echo "   2) Google"
+        echo "   1) Cloudflare"
+        echo "   2) Google [Default]"
         echo "   3) OpenDNS (has phishing protection and other security filters)"
         echo "   4) Quad9 (Malware protection)"
         echo "   5) AdGuard DNS (automatically blocks ads)"
-        read -p "[?] DNS (1-5)[1]: " -e -i 1 DNS_CHOICE
+        read -p "[?] DNS (1-5)[2]: " -e -i 1 DNS_CHOICE
 
         case $DNS_CHOICE in
             1)
@@ -93,11 +100,11 @@ if [ ! -f "$WG_CONFIG" ]; then
         echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable.list
         printf 'Package: *\nPin: release a=unstable\nPin-Priority: 90\n' > /etc/apt/preferences.d/limit-unstable
         apt update
-        apt install wireguard qrencode iptables-persistent bc -y
+        apt install wireguard qrencode iptables-persistent -y
     elif [ "$DISTRO" == "CentOS" ]; then
-        curl -Lo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
-        yum install epel-release -y
-        yum install wireguard-dkms qrencode wireguard-tools bc -y
+        yum install -y epel-release https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm
+        yum install -y yum-plugin-elrepo
+        yum install -y kmod-wireguard wireguard-tools qrencode bc firewalld wget curl vim
     fi
 
     SERVER_PRIVKEY=$( wg genkey )
@@ -138,6 +145,9 @@ qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
     sysctl -p
 
     if [ "$DISTRO" == "CentOS" ]; then
+        # Install some basic packages
+        systemctl enable --now firewalld 
+        # Configure Firewall and natting
         firewall-cmd --zone=public --add-port=$SERVER_PORT/udp
         firewall-cmd --zone=trusted --add-source=$PRIVATE_SUBNET
         firewall-cmd --permanent --zone=public --add-port=$SERVER_PORT/udp
@@ -155,7 +165,6 @@ qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
     systemctl enable wg-quick@wg0.service
     systemctl start wg-quick@wg0.service
 
-    # TODO: unattended updates, apt install dnsmasq ntp
     echo "[+] Client config --> $HOME/client-wg0.conf"
     echo "[+] Now reboot the server and enjoy your fresh VPN installation! :^)"
 else
