@@ -1,4 +1,5 @@
 #!/bin/bash
+# wg-install - v20200825-1
 
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
