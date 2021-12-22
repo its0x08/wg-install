@@ -30,6 +30,9 @@ if [ -e /etc/centos-release ]; then
 elif [ -e /etc/debian_version ]; then
     DISTRO=$( lsb_release -is )
     echo "[i] OS: " $DISTRO
+elif [ -e /etc/system-release ]; then
+    DISTRO=$( lsb_release -is )
+    echo "[i] OS: " $DISTRO
 else
     echo "[-] Your distribution is not supported (yet)"
     exit
@@ -80,7 +83,7 @@ if [ ! -f "$WG_CONFIG" ]; then
             CLIENT_DNS="9.9.9.9"
             ;;
             5)
-            CLIENT_DNS="176.103.130.130,176.103.130.131"
+            CLIENT_DNS="94.140.14.14, 94.140.15.15"
             ;;
         esac
     fi
@@ -98,6 +101,9 @@ if [ ! -f "$WG_CONFIG" ]; then
         curl -Lo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
         yum install epel-release -y
         yum install wireguard-dkms qrencode wireguard-tools bc -y
+    elif [ "$DISTRO" == "Amazon" ]; then
+        amazon-linux-extras install epel -y
+        yum install wireguard-tools bc qrencode -y
     fi
 
     SERVER_PRIVKEY=$( wg genkey )
@@ -137,7 +143,7 @@ qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
     echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf
     sysctl -p
 
-    if [ "$DISTRO" == "CentOS" ]; then
+    if [[ "$DISTRO" == "CentOS"  || "$DISTRO" == "Amazon" ]]; then
         firewall-cmd --zone=public --add-port=$SERVER_PORT/udp
         firewall-cmd --zone=trusted --add-source=$PRIVATE_SUBNET
         firewall-cmd --permanent --zone=public --add-port=$SERVER_PORT/udp
