@@ -50,7 +50,7 @@ if [ ! -f "$WG_CONFIG" ]; then
     #GATEWAY_ADDRESS=$(route -n | awk '$1 == "0.0.0.0" {print $2}')
 
     if [ "$SERVER_HOST" == "" ]; then
-        SERVER_HOST=$(curl ifconfig.me)
+        SERVER_HOST=$(curl ifconfig.me -s)
         if [ "$INTERACTIVE" == "yes" ]; then
             read -p "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
             if [ "$CONFIRM" == "n" ]; then
@@ -87,7 +87,7 @@ if [ ! -f "$WG_CONFIG" ]; then
             CLIENT_DNS="9.9.9.9"
             ;;
             5)
-            CLIENT_DNS="176.103.130.130,176.103.130.131"
+            CLIENT_DNS="94.140.14.14, 94.140.15.15"
             ;;
         esac
     fi
