@@ -38,7 +38,7 @@ elif [ -e /etc/debian_version ]; then
     DISTRO=$( lsb_release -is )
     echo "[i] OS: " $DISTRO
 elif [ -e /etc/system-release ]; then # support for Amazon Linux
-    DISTRO=$( lsb_release -is )
+    DISTRO=S"Amazon"
     echo "[i] OS: " $DISTRO
 else
     echo "[-] Your distribution is not supported (yet)"
