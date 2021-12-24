@@ -50,8 +50,8 @@ if [ "$DISTRO" == "CentOS" ]; then
     fi
 
 echo "disabling ip forwarding in kernel"
-read -p "Do you want to disable ip forwarding in the kernel? " DISABLE_FORWARDING
-    if [[ "$DISABLE_FORWARDING" == "1" ]] ; then
+read -p "Do you want to disable ip forwarding in the kernel? [y/n]: " -e -i "y" DISABLE_FORWARDING
+    if [[ "$DISABLE_FORWARDING" == "y" ]] ; then
         sed -i "/s/net.ipv4.ip_forward = 1//g" /etc/sysctl.conf
         sed -i "/s/net.ipv4.conf.all.forwarding = 1//g" /etc/sysctl.conf
         sed -i "/s/net.ipv6.conf.all.forwarding = 1//g" /etc/sysctl.conf
