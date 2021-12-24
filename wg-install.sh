@@ -37,6 +37,9 @@ if [ -e /etc/centos-release ]; then
 elif [ -e /etc/debian_version ]; then
     DISTRO=$( lsb_release -is )
     echo "[i] OS: " $DISTRO
+elif [ -e /etc/system-release ]; then # support for Amazon Linux
+    DISTRO=$( lsb_release -is )
+    echo "[i] OS: " $DISTRO
 else
     echo "[-] Your distribution is not supported (yet)"
     exit
@@ -110,6 +113,9 @@ if [ ! -f "$WG_CONFIG" ]; then
         yum install -y epel-release https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm
         yum install -y yum-plugin-elrepo
         yum install -y kmod-wireguard wireguard-tools qrencode bc firewalld wget curl vim
+    elif [ "$DISTRO" == "Amazon" ]; then
+        amazon-linux-extras install epel -y
+        yum install wireguard-tools bc qrencode -y
     fi
 
     SERVER_PRIVKEY=$( wg genkey )
