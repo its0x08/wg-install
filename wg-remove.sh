@@ -39,10 +39,6 @@ else
 fi
 
 if [ "$DISTRO" == "CentOS" ]; then
-        # Install some basic packages
-        yum -y install firewalld
-        systemctl enable --now firewalld 
-        # Configure Firewall and natting
         firewall-cmd --zone=public --remove-port=$SERVER_PORT/udp
         firewall-cmd --zone=trusted --remove-source=$PRIVATE_SUBNET
         firewall-cmd --permanent --zone=public --remove-port=$SERVER_PORT/udp
@@ -51,6 +47,15 @@ if [ "$DISTRO" == "CentOS" ]; then
         iptables -D FORWARD -m conntrack --ctstate NEW -s $PRIVATE_SUBNET -m policy --pol none --dir in -j ACCEPT
         iptables -D INPUT -p udp --dport $SERVER_PORT -j ACCEPT
         iptables-save > /etc/iptables/rules.v4
+    fi
+
+echo "disabling ip forwarding in kernel"
+read -p "Do you want to disable ip forwarding in the kernel? " DISABLE_FORWARDING
+    if [[ "$DISABLE_FORWARDING" == "1" ]] ; then
+        sed -i "/s/net.ipv4.ip_forward = 1//g" /etc/sysctl.conf
+        sed -i "/s/net.ipv4.conf.all.forwarding = 1//g" /etc/sysctl.conf
+        sed -i "/s/net.ipv6.conf.all.forwarding = 1//g" /etc/sysctl.conf
+        sysctl -p
     fi
 
 echo "cleaning up config file at $WG_CONFIG"
