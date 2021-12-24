@@ -1,22 +1,15 @@
 #!/bin/bash
 
-# wg-install-dynamic.sh
-# run on the first time to configure the server and the first client certificate.
-# the following times it will just generate client configs
-# Besmir Zanaj - 2020
-
-
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
 function generate_port
 {
-    local port=$(shuf -i 35000-65000 -n 1) # lets choose something higher than 35000
-    ss -lau | grep $port > /dev/null # check if port already in use
-
+    local port=$(shuf -i 2000-65000 -n 1)
+    ss -lau | grep $port > /dev/null
     if [[ $? == 1 ]] ; then
         echo "$port"
     else
-        generate_port # pich another port
+        generate_port
     fi
 }
 
@@ -37,6 +30,9 @@ if [ -e /etc/centos-release ]; then
 elif [ -e /etc/debian_version ]; then
     DISTRO=$( lsb_release -is )
     echo "[i] OS: " $DISTRO
+elif [ -e /etc/system-release ]; then
+    DISTRO=$( lsb_release -is )
+    echo "[i] OS: " $DISTRO
 else
     echo "[-] Your distribution is not supported (yet)"
     exit
@@ -48,7 +44,6 @@ if [ ! -f "$WG_CONFIG" ]; then
     PRIVATE_SUBNET=${PRIVATE_SUBNET:-"10.9.0.0/24"}
     PRIVATE_SUBNET_MASK=$( echo $PRIVATE_SUBNET | cut -d "/" -f 2 )
     GATEWAY_ADDRESS="${PRIVATE_SUBNET::-4}1"
-    #GATEWAY_ADDRESS=$(route -n | awk '$1 == "0.0.0.0" {print $2}')
 
     if [ "$SERVER_HOST" == "" ]; then
         SERVER_HOST=$(curl ifconfig.me -s)
@@ -67,8 +62,8 @@ if [ ! -f "$WG_CONFIG" ]; then
 
     if [ "$CLIENT_DNS" == "" ]; then
         echo "Which DNS do you want to use with the VPN?"
-        echo "   1) Cloudflare"
-        echo "   2) Google [Default]"
+        echo "   1) Cloudflare (fastest DNS)"
+        echo "   2) Google"
         echo "   3) OpenDNS (has phishing protection and other security filters)"
         echo "   4) Quad9 (Malware protection)"
         echo "   5) AdGuard DNS (automatically blocks ads)"
@@ -88,7 +83,7 @@ if [ ! -f "$WG_CONFIG" ]; then
             CLIENT_DNS="9.9.9.9"
             ;;
             5)
-            CLIENT_DNS="94.140.14.14,94.140.15.15"
+            CLIENT_DNS="94.140.14.14, 94.140.15.15"
             ;;
         esac
     fi
@@ -101,11 +96,14 @@ if [ ! -f "$WG_CONFIG" ]; then
         echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable.list
         printf 'Package: *\nPin: release a=unstable\nPin-Priority: 90\n' > /etc/apt/preferences.d/limit-unstable
         apt update
-        apt install wireguard qrencode iptables-persistent -y
+        apt install wireguard qrencode iptables-persistent bc -y
     elif [ "$DISTRO" == "CentOS" ]; then
-        yum install -y epel-release https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm
-        yum install -y yum-plugin-elrepo
-        yum install -y kmod-wireguard wireguard-tools qrencode bc firewalld wget curl vim
+        curl -Lo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
+        yum install epel-release -y
+        yum install wireguard-dkms qrencode wireguard-tools bc -y
+    elif [ "$DISTRO" == "Amazon" ]; then
+        amazon-linux-extras install epel -y
+        yum install wireguard-tools bc qrencode -y
     fi
 
     SERVER_PRIVKEY=$( wg genkey )
@@ -122,9 +120,7 @@ if [ ! -f "$WG_CONFIG" ]; then
 Address = $GATEWAY_ADDRESS/$PRIVATE_SUBNET_MASK
 ListenPort = $SERVER_PORT
 PrivateKey = $SERVER_PRIVKEY
-SaveConfig = false
-PostUp   = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $WAN_INTERFACE_NAME -j MASQUERADE;
-PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $WAN_INTERFACE_NAME -j MASQUERADE;" > $WG_CONFIG
+SaveConfig = false" > $WG_CONFIG
 
     echo "# client
 [Peer]
@@ -147,18 +143,17 @@ qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
     echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf
     sysctl -p
 
-    if [ "$DISTRO" == "CentOS" ]; then
-        # Install some basic packages
-        yum -y install firewalld
-        systemctl enable --now firewalld 
-        # Configure Firewall and natting
+    if [[ "$DISTRO" == "CentOS"  || "$DISTRO" == "Amazon" ]]; then
         firewall-cmd --zone=public --add-port=$SERVER_PORT/udp
         firewall-cmd --zone=trusted --add-source=$PRIVATE_SUBNET
         firewall-cmd --permanent --zone=public --add-port=$SERVER_PORT/udp
         firewall-cmd --permanent --zone=trusted --add-source=$PRIVATE_SUBNET
+        firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -s $PRIVATE_SUBNET ! -d $PRIVATE_SUBNET -j SNAT --to $SERVER_HOST
+        firewall-cmd --permanent --direct --add-rule ipv4 nat POSTROUTING 0 -s $PRIVATE_SUBNET ! -d $PRIVATE_SUBNET -j SNAT --to $SERVER_HOST
     else
         iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
         iptables -A FORWARD -m conntrack --ctstate NEW -s $PRIVATE_SUBNET -m policy --pol none --dir in -j ACCEPT
+        iptables -t nat -A POSTROUTING -s $PRIVATE_SUBNET -m policy --pol none --dir out -j MASQUERADE
         iptables -A INPUT -p udp --dport $SERVER_PORT -j ACCEPT
         iptables-save > /etc/iptables/rules.v4
     fi
@@ -166,6 +161,7 @@ qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
     systemctl enable wg-quick@wg0.service
     systemctl start wg-quick@wg0.service
 
+    # TODO: unattended updates, apt install dnsmasq ntp
     echo "[+] Client config --> $HOME/client-wg0.conf"
     echo "[+] Now reboot the server and enjoy your fresh VPN installation! :^)"
 else
