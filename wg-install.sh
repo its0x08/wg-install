@@ -152,9 +152,12 @@ Endpoint = $SERVER_HOST:$SERVER_PORT
 PersistentKeepalive = 25" > $HOME/client-wg0.conf
 qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
 
+    # Enable IP Forwarding
     echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
     echo "net.ipv4.conf.all.forwarding=1" >> /etc/sysctl.conf
     echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf
+    
+    # Enable these settings right now, no need to reboot
     sysctl -p
 
     if [ "$DISTRO" == "CentOS" ]; then
@@ -176,8 +179,11 @@ qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
     systemctl enable wg-quick@wg0.service
     systemctl start wg-quick@wg0.service
 
-    echo "[+] Client config --> $HOME/client-wg0.conf"
-    echo "[+] Now reboot the server and enjoy your fresh VPN installation! :^)"
+    echo "[+] Your first client config is saved at -> $HOME/client-wg0.conf"
+    echo " "
+    echo "[+] You can use your mobile device to scan the above barcode."
+    echo "[+] The Wireguard VPN server is up and running. Enjoy your fresh VPN installation! :^)"
+    echo "[+] To add more client configs run the same script again and enter the client config name."
 else
     ### Server is installed, add a new client
     CLIENT_NAME="$1"
