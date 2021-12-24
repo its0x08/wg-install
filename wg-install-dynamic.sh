@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# wg-install.sh
+# wg-install-dynamic.sh
 # run on the first time to configure the server and the first client certificate.
 # the following times it will just generate client configs
 # Besmir Zanaj - 2020
@@ -10,12 +10,13 @@ WG_CONFIG="/etc/wireguard/wg0.conf"
 
 function generate_port
 {
-    local port=$(shuf -i 2000-65000 -n 1)
-    ss -lau | grep $port > /dev/null
+    local port=$(shuf -i 35000-65000 -n 1) # lets choose something higher than 35000
+    ss -lau | grep $port > /dev/null # check if port already in use
+
     if [[ $? == 1 ]] ; then
         echo "$port"
     else
-        generate_port
+        generate_port # pich another port
     fi
 }
 
@@ -71,7 +72,7 @@ if [ ! -f "$WG_CONFIG" ]; then
         echo "   3) OpenDNS (has phishing protection and other security filters)"
         echo "   4) Quad9 (Malware protection)"
         echo "   5) AdGuard DNS (automatically blocks ads)"
-        read -p "[?] DNS (1-5)[2]: " -e -i 1 DNS_CHOICE
+        read -p "[?] DNS (1-5)[1]: " -e -i 1 DNS_CHOICE
 
         case $DNS_CHOICE in
             1)
@@ -121,7 +122,9 @@ if [ ! -f "$WG_CONFIG" ]; then
 Address = $GATEWAY_ADDRESS/$PRIVATE_SUBNET_MASK
 ListenPort = $SERVER_PORT
 PrivateKey = $SERVER_PRIVKEY
-SaveConfig = false" > $WG_CONFIG
+SaveConfig = false
+PostUp   = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $WAN_INTERFACE_NAME -j MASQUERADE;
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $WAN_INTERFACE_NAME -j MASQUERADE;" > $WG_CONFIG
 
     echo "# client
 [Peer]
@@ -146,18 +149,16 @@ qrencode -t ansiutf8 -l L < $HOME/client-wg0.conf
 
     if [ "$DISTRO" == "CentOS" ]; then
         # Install some basic packages
+        yum -y install firewalld
         systemctl enable --now firewalld 
         # Configure Firewall and natting
         firewall-cmd --zone=public --add-port=$SERVER_PORT/udp
         firewall-cmd --zone=trusted --add-source=$PRIVATE_SUBNET
         firewall-cmd --permanent --zone=public --add-port=$SERVER_PORT/udp
         firewall-cmd --permanent --zone=trusted --add-source=$PRIVATE_SUBNET
-        firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -s $PRIVATE_SUBNET ! -d $PRIVATE_SUBNET -j SNAT --to $SERVER_HOST
-        firewall-cmd --permanent --direct --add-rule ipv4 nat POSTROUTING 0 -s $PRIVATE_SUBNET ! -d $PRIVATE_SUBNET -j SNAT --to $SERVER_HOST
     else
         iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
         iptables -A FORWARD -m conntrack --ctstate NEW -s $PRIVATE_SUBNET -m policy --pol none --dir in -j ACCEPT
-        iptables -t nat -A POSTROUTING -s $PRIVATE_SUBNET -m policy --pol none --dir out -j MASQUERADE
         iptables -A INPUT -p udp --dport $SERVER_PORT -j ACCEPT
         iptables-save > /etc/iptables/rules.v4
     fi
