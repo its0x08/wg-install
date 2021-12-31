@@ -35,7 +35,7 @@ if [ -e /etc/centos-release ]; then
     DISTRO="CentOS"
     echo "[i] OS: " $DISTRO
 elif [ -e /etc/debian_version ]; then
-    DISTRO=$( lsb_release -is )
+    DISTRO=$( lsb_release -ds )
     echo "[i] OS: " $DISTRO
 elif [ -e /etc/system-release ]; then # support for Amazon Linux
     DISTRO=S"Amazon"
@@ -100,10 +100,15 @@ if [ ! -f "$WG_CONFIG" ]; then
         esac
     fi
 
-    if [ "$DISTRO" == "Ubuntu" ]; then
+    echo "This systems distro is ${DISTRO:0:12} or full ${DISTRO}"
+
+    if [ "${DISTRO:0:12}" == "Ubuntu 18.04" ]; then
         add-apt-repository ppa:wireguard/wireguard -y
         apt update
-        apt install wireguard qrencode iptables-persistent -y
+        apt install wireguard qrencode -y #iptables-persistent -y
+    elif [ "${DISTRO:0:12}" == "Ubuntu 20.04" ]; then
+	apt update
+        apt install wireguard qrencode -y
     elif [ "$DISTRO" == "Debian" ]; then
         echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable.list
         printf 'Package: *\nPin: release a=unstable\nPin-Priority: 90\n' > /etc/apt/preferences.d/limit-unstable
