@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# wg-install-dynamic.sh
+# wg-install.sh
 # run on the first time to configure the server and the first client certificate.
 # the following times it will just generate client configs
 # Besmir Zanaj - 2020
