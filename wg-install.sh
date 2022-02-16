@@ -1,5 +1,5 @@
 #!/bin/bash
-# wg-install - v20200825-1
+# wg-install - v0.0.2-beta
 
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
@@ -201,7 +201,7 @@ Address = $CLIENT_ADDRESS/$PRIVATE_SUBNET_MASK
 DNS = $CLIENT_DNS
 [Peer]
 PublicKey = $SERVER_PUBKEY
-AllowedIPs = 0.0.0.0/0, ::/0 
+AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $SERVER_ENDPOINT
 PersistentKeepalive = 25" >$HOME/$CLIENT_NAME-wg0.conf
 	qrencode -t ansiutf8 -l L <$HOME/$CLIENT_NAME-wg0.conf
