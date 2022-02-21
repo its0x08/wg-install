@@ -5,6 +5,8 @@ WireGuard autoinstaller written in Bash
 
 This script will install automatically the Wireguard server and generate client configuration files for a secure connection.
 
+![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fits0x08%2Fwg-install&countColor=%232ccce4&style=flat-square)
+
 ## Usage command
 
 ### Oneliner:
