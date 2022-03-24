@@ -10,10 +10,12 @@ This script will install automatically the Wireguard server and generate client 
 ## Usage command
 
 ### Oneliner:
-`wget http://git.io/Jff1k -qO wg.sh && bash wg.sh`
+```bash
+wget http://git.io/Jff1k -qO wg.sh && bash wg.sh
+```
 
 ### Steps to download and run the scripts:
-```
+```bash
 git clone https://github.com/its0x08/wg-install.git
 cd wg-install
 bash wg.sh
@@ -23,7 +25,9 @@ bash wg.sh
 You can run it again to generate more users after the first run, or remove WireGuard. Reboot your server to apply all settings.
 
 ## To start/activate the Wireguard client:
-`wg-quick up config_name`
+```bash
+wg-quick up config_name
+```
 
 ## Options:
 
