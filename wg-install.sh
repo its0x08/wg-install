@@ -5,7 +5,7 @@ WG_CONFIG="/etc/wireguard/wg0.conf"
 
 function generate_port {
 	local port=$(shuf -i 2000-65535 -n 1)
-	ss -lau | grep $port >/dev/null
+	ss -tulpn | grep $port >/dev/null
 	if [[ $? == 1 ]]; then
 		echo "$port"
 	else
