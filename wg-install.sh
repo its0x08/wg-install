@@ -1,5 +1,5 @@
 #!/bin/bash
-# wg-install - v0.0.2-beta
+# wg-install - v0.0.3-beta
 
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
@@ -30,7 +30,7 @@ elif [ -e /etc/debian_version ]; then
 	DISTRO=$(lsb_release -is)
 	echo "[i] OS: " $DISTRO
 else
-	echo "[-] Your distribution is not supported (yet)"
+	echo -e "[-] Your distribution is not supported (yet)\n[i] Please open an issue or pull request to address you problem."
 	exit 95
 fi
 
@@ -87,16 +87,16 @@ if [ ! -f "$WG_CONFIG" ]; then
 	if [ "$DISTRO" == "Ubuntu" ]; then
 		add-apt-repository ppa:wireguard/wireguard -y
 		apt update
-		apt install wireguard qrencode iptables-persistent -y
+		apt install linux-headers-$(uname -r) wireguard qrencode iptables-persistent -y
 	elif [ "$DISTRO" == "Debian" ]; then
 		echo "deb http://deb.debian.org/debian/ unstable main" >/etc/apt/sources.list.d/unstable.list
 		echo -e 'Package: *\nPin: release a=unstable\nPin-Priority: 90\n' >/etc/apt/preferences.d/limit-unstable
 		apt update
-		apt install wireguard qrencode iptables-persistent -y
+		apt install linux-headers-$(uname -r) wireguard qrencode iptables-persistent -y
 	elif [ "$DISTRO" == "CentOS" ]; then
 		curl -Lo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
 		yum install epel-release -y
-		yum install wireguard-dkms qrencode wireguard-tools -y
+		yum install kernel-headers wireguard-dkms qrencode wireguard-tools -y
 	fi
 
 	SERVER_PRIVKEY=$(wg genkey)
