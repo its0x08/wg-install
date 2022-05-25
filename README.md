@@ -7,7 +7,6 @@ This script will install automatically the Wireguard server and generate client 
 
 ![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fits0x08%2Fwg-install&countColor=%232ccce4&style=flat-square)
 [![Semgrep](https://github.com/its0x08/wg-install/actions/workflows/semgrep.yml/badge.svg)](https://github.com/its0x08/wg-install/actions/workflows/semgrep.yml)
-[![Codacy Security Scan](https://github.com/its0x08/wg-install/actions/workflows/codacy.yml/badge.svg?branch=master)](https://github.com/its0x08/wg-install/actions/workflows/codacy.yml)
 [![Codacy Security Scan](https://github.com/its0x08/wg-install/actions/workflows/codacy.yml/badge.svg)](https://github.com/its0x08/wg-install/actions/workflows/codacy.yml)
 
 
