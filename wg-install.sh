@@ -4,8 +4,8 @@
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
 function generate_port {
-	local port=$(shuf -i 2000-65535 -n 1)
-	ss -lau | grep $port >/dev/null
+	local port="$(shuf -i 2000-65535 -n 1)"
+	ss -lau | grep "$port" >/dev/null
 	if [[ $? == 1 ]]; then
 		echo "$port"
 	else
@@ -25,10 +25,10 @@ fi
 
 if [ -e /etc/centos-release ]; then
 	DISTRO="CentOS"
-	echo "[i] OS: " $DISTRO
+	echo "[i] OS: $DISTRO"
 elif [ -e /etc/debian_version ]; then
-	DISTRO=$(lsb_release -is)
-	echo "[i] OS: " $DISTRO
+	DISTRO="$(lsb_release -is)"
+	echo "[i] OS: $DISTRO"
 else
 	echo -e "[-] Your distribution is not supported (yet)\n[i] Please open an issue or pull request to address you problem."
 	exit 95
@@ -42,7 +42,7 @@ if [ ! -f "$WG_CONFIG" ]; then
 	GATEWAY_ADDRESS="${PRIVATE_SUBNET::-4}1"
 
 	if [ "$SERVER_HOST" == "" ]; then
-		SERVER_HOST=$(hostname -i)
+		SERVER_HOST="$(hostname -i)"
 		if [ "$INTERACTIVE" == "yes" ]; then
 			read -rp "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
 			if [ "$CONFIRM" == "n" ]; then
@@ -53,7 +53,7 @@ if [ ! -f "$WG_CONFIG" ]; then
 	fi
 
 	if [ "$SERVER_PORT" == "" ]; then
-		SERVER_PORT=$(generate_port)
+		SERVER_PORT="$(generate_port)"
 	fi
 
 	if [ "$CLIENT_DNS" == "" ]; then
@@ -108,17 +108,19 @@ if [ ! -f "$WG_CONFIG" ]; then
 	mkdir -p /etc/wireguard
 	touch $WG_CONFIG && chmod 600 $WG_CONFIG
 
-	echo "# $PRIVATE_SUBNET $SERVER_HOST:$SERVER_PORT $SERVER_PUBKEY $CLIENT_DNS
+	{
+		echo "# $PRIVATE_SUBNET $SERVER_HOST:$SERVER_PORT $SERVER_PUBKEY $CLIENT_DNS
 [Interface]
 Address = $GATEWAY_ADDRESS/$PRIVATE_SUBNET_MASK
 ListenPort = $SERVER_PORT
 PrivateKey = $SERVER_PRIVKEY
-SaveConfig = false" >$WG_CONFIG
+SaveConfig = false"; 
 
 	echo "# client
 [Peer]
 PublicKey = $CLIENT_PUBKEY
-AllowedIPs = $CLIENT_ADDRESS/32" >> $WG_CONFIG
+AllowedIPs = $CLIENT_ADDRESS/32";
+	} >> $WG_CONFIG
 
 	echo "[Interface]
 PrivateKey = $CLIENT_PRIVKEY
@@ -128,7 +130,7 @@ DNS = $CLIENT_DNS
 PublicKey = $SERVER_PUBKEY
 AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $SERVER_HOST:$SERVER_PORT
-PersistentKeepalive = 25" >$HOME/client-wg0.conf
+PersistentKeepalive = 25" > $HOME/client-wg0.conf
 	qrencode -t ansiutf8 -l L <$HOME/client-wg0.conf
 
 	{ 
@@ -139,18 +141,18 @@ PersistentKeepalive = 25" >$HOME/client-wg0.conf
 	sysctl -p
 
 	if [ "$DISTRO" == "CentOS" ]; then
-		firewall-cmd --zone=public --add-port=$SERVER_PORT/udp
-		firewall-cmd --zone=trusted --add-source=$PRIVATE_SUBNET
-		firewall-cmd --permanent --zone=public --add-port=$SERVER_PORT/udp
-		firewall-cmd --permanent --zone=trusted --add-source=$PRIVATE_SUBNET
-		firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -s $PRIVATE_SUBNET ! -d $PRIVATE_SUBNET -j SNAT --to $SERVER_HOST
-		firewall-cmd --permanent --direct --add-rule ipv4 nat POSTROUTING 0 -s $PRIVATE_SUBNET ! -d $PRIVATE_SUBNET -j SNAT --to $SERVER_HOST
+		firewall-cmd --zone=public --add-port="$SERVER_PORT/udp"
+		firewall-cmd --zone=trusted --add-source="$PRIVATE_SUBNET"
+		firewall-cmd --permanent --zone=public --add-port="$SERVER_PORT/udp"
+		firewall-cmd --permanent --zone=trusted --add-source="$PRIVATE_SUBNET"
+		firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -s "$PRIVATE_SUBNET" ! -d "$PRIVATE_SUBNET" -j SNAT --to "$SERVER_HOST"
+		firewall-cmd --permanent --direct --add-rule ipv4 nat POSTROUTING 0 -s "$PRIVATE_SUBNET" ! -d "$PRIVATE_SUBNET" -j SNAT --to "$SERVER_HOST"
 	else
 		iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-		iptables -A FORWARD -m conntrack --ctstate NEW -s $PRIVATE_SUBNET -m policy --pol none --dir in -j ACCEPT
-		iptables -t nat -A POSTROUTING -s $PRIVATE_SUBNET -m policy --pol none --dir out -j MASQUERADE
-		iptables -A INPUT -p udp --dport $SERVER_PORT -j ACCEPT
-		iptables-save >/etc/iptables/rules.v4
+		iptables -A FORWARD -m conntrack --ctstate NEW -s "$PRIVATE_SUBNET" -m policy --pol none --dir in -j ACCEPT
+		iptables -t nat -A POSTROUTING -s "$PRIVATE_SUBNET" -m policy --pol none --dir out -j MASQUERADE
+		iptables -A INPUT -p udp --dport "$SERVER_PORT" -j ACCEPT
+		iptables-save > /etc/iptables/rules.v4
 	fi
 
 	systemctl enable wg-quick@wg0.service
@@ -166,7 +168,7 @@ else
 	read -rp "[+] Choose from above options [1/2]: " -e ADD_REMOVE
 	if [ "$ADD_REMOVE" == "1" ]; then
 		echo "[*] Removing WireGuard from the server..."
-		rm -rf $WG_CONFIG;
+		rm -rf "$WG_CONFIG";
 		if [ "$DISTRO" == "Ubuntu" ]; then
 			apt install wireguard -y && apt autoremove -y && apt autoclean -y
 		elif [ "$DISTRO" == "Debian" ]; then
@@ -206,7 +208,7 @@ PublicKey = $SERVER_PUBKEY
 AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $SERVER_ENDPOINT
 PersistentKeepalive = 25" > $HOME/$CLIENT_NAME-wg0.conf
-	qrencode -t ansiutf8 -l L <$HOME/$CLIENT_NAME-wg0.conf
+	qrencode -t ansiutf8 -l L < "$HOME/$CLIENT_NAME-wg0.conf"
 
 	ip address | grep -q wg0 && wg set wg0 peer "$CLIENT_PUBKEY" allowed-ips "$CLIENT_ADDRESS/32"
 	echo "[+] Client added, new configuration file --> $HOME/$CLIENT_NAME-wg0.conf"
