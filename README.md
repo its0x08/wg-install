@@ -1,5 +1,5 @@
 
-# wg-install v0.0.14-alpha
+# wg-install v0.0.17-alpha
 WireGuard autoinstaller written in Bash
 
 [WireGuard](https://www.wireguard.com) [road warrior](http://en.wikipedia.org/wiki/Road_warrior_%28computing%29) installer for Ubuntu, Debian, CentOS and Fedora!
