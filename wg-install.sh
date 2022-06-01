@@ -1,5 +1,5 @@
 #!/bin/bash
-# wg-install - v0.0.3-beta
+# wg-install v0.0.14-alpha
 
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
@@ -100,9 +100,9 @@ if [ ! -f "$WG_CONFIG" ]; then
 	fi
 
 	SERVER_PRIVKEY="$(wg genkey)"
-	SERVER_PUBKEY="$(echo $SERVER_PRIVKEY | wg pubkey)"
+	SERVER_PUBKEY="$(echo "$SERVER_PRIVKEY" | wg pubkey)"
 	CLIENT_PRIVKEY="$(wg genkey)"
-	CLIENT_PUBKEY="$(echo $CLIENT_PRIVKEY | wg pubkey)"
+	CLIENT_PUBKEY="$(echo "$CLIENT_PRIVKEY" | wg pubkey)"
 	CLIENT_ADDRESS="${PRIVATE_SUBNET::-4}3"
 
 	mkdir -p /etc/wireguard
