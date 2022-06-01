@@ -44,7 +44,7 @@ if [ ! -f "$WG_CONFIG" ]; then
 	if [ "$SERVER_HOST" == "" ]; then
 		SERVER_HOST=$(hostname -i)
 		if [ "$INTERACTIVE" == "yes" ]; then
-			read -p "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
+			read -rp "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
 			if [ "$CONFIRM" == "n" ]; then
 				echo "[-] Aborted. Use environment variable SERVER_HOST to set the correct public IP address"
 				exit 125
@@ -63,7 +63,7 @@ if [ ! -f "$WG_CONFIG" ]; then
 		echo "   3) OpenDNS (has phishing protection and other security filters)"
 		echo "   4) Quad9 (Malware protection)"
 		echo "   5) AdGuard DNS (automatically blocks ads)"
-		read -p "[?] DNS (1-5)[1]: " -e -i 1 DNS_CHOICE
+		read -rp "[?] DNS (1-5)[1]: " -e -i 1 DNS_CHOICE
 
 		case $DNS_CHOICE in
 		1)
@@ -118,7 +118,7 @@ SaveConfig = false" >$WG_CONFIG
 	echo "# client
 [Peer]
 PublicKey = $CLIENT_PUBKEY
-AllowedIPs = $CLIENT_ADDRESS/32" >>$WG_CONFIG
+AllowedIPs = $CLIENT_ADDRESS/32" >> $WG_CONFIG
 
 	echo "[Interface]
 PrivateKey = $CLIENT_PRIVKEY
@@ -131,9 +131,11 @@ Endpoint = $SERVER_HOST:$SERVER_PORT
 PersistentKeepalive = 25" >$HOME/client-wg0.conf
 	qrencode -t ansiutf8 -l L <$HOME/client-wg0.conf
 
-	echo "net.ipv4.ip_forward=1" >>/etc/sysctl.conf
-	echo "net.ipv4.conf.all.forwarding=1" >>/etc/sysctl.conf
-	echo "net.ipv6.conf.all.forwarding=1" >>/etc/sysctl.conf
+	{ 
+		echo "net.ipv4.ip_forward=1";
+		echo "net.ipv4.conf.all.forwarding=1";
+		echo "net.ipv6.conf.all.forwarding=1";
+	}  >> /etc/sysctl.conf
 	sysctl -p
 
 	if [ "$DISTRO" == "CentOS" ]; then
@@ -161,7 +163,7 @@ else
 	### Server is installed, add a new client or remove server
 	echo "[1] Remove WireGuard."
 	echo "[2] Add client."
-	read -p "[+] Choose from above options [1/2]: " -e ADD_REMOVE
+	read -rp "[+] Choose from above options [1/2]: " -e ADD_REMOVE
 	if [ "$ADD_REMOVE" == "1" ]; then
 		echo "[*] Removing WireGuard from the server..."
 		rm -rf $WG_CONFIG;
@@ -179,7 +181,7 @@ else
 	CLIENT_NAME="$1"
 	if [ "$CLIENT_NAME" == "" ]; then
 		echo "[?] Tell me a name for the client config file [no special characters]."
-		read -p "[+] Client name: " -e CLIENT_NAME
+		read -rp "[+] Client name: " -e CLIENT_NAME
 	fi
 	CLIENT_PRIVKEY=$(wg genkey)
 	CLIENT_PUBKEY=$(echo $CLIENT_PRIVKEY | wg pubkey)
@@ -193,7 +195,7 @@ else
 	echo "# $CLIENT_NAME
 [Peer]
 PublicKey = $CLIENT_PUBKEY
-AllowedIPs = $CLIENT_ADDRESS/32" >>$WG_CONFIG
+AllowedIPs = $CLIENT_ADDRESS/32" >> $WG_CONFIG
 
 	echo "[Interface]
 PrivateKey = $CLIENT_PRIVKEY
@@ -203,7 +205,7 @@ DNS = $CLIENT_DNS
 PublicKey = $SERVER_PUBKEY
 AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $SERVER_ENDPOINT
-PersistentKeepalive = 25" >$HOME/$CLIENT_NAME-wg0.conf
+PersistentKeepalive = 25" > $HOME/$CLIENT_NAME-wg0.conf
 	qrencode -t ansiutf8 -l L <$HOME/$CLIENT_NAME-wg0.conf
 
 	ip address | grep -q wg0 && wg set wg0 peer "$CLIENT_PUBKEY" allowed-ips "$CLIENT_ADDRESS/32"
