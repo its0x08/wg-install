@@ -118,7 +118,7 @@ SaveConfig = false" >$WG_CONFIG
 	echo "# client
 [Peer]
 PublicKey = $CLIENT_PUBKEY
-AllowedIPs = $CLIENT_ADDRESS/32" >>$WG_CONFIG
+AllowedIPs = $CLIENT_ADDRESS/32" >> $WG_CONFIG
 
 	echo "[Interface]
 PrivateKey = $CLIENT_PRIVKEY
@@ -131,9 +131,11 @@ Endpoint = $SERVER_HOST:$SERVER_PORT
 PersistentKeepalive = 25" >$HOME/client-wg0.conf
 	qrencode -t ansiutf8 -l L <$HOME/client-wg0.conf
 
-	echo "net.ipv4.ip_forward=1" >>/etc/sysctl.conf
-	echo "net.ipv4.conf.all.forwarding=1" >>/etc/sysctl.conf
-	echo "net.ipv6.conf.all.forwarding=1" >>/etc/sysctl.conf
+	{ 
+		echo "net.ipv4.ip_forward=1";
+		echo "net.ipv4.conf.all.forwarding=1";
+		echo "net.ipv6.conf.all.forwarding=1";
+	}  >> /etc/sysctl.conf
 	sysctl -p
 
 	if [ "$DISTRO" == "CentOS" ]; then
@@ -193,7 +195,7 @@ else
 	echo "# $CLIENT_NAME
 [Peer]
 PublicKey = $CLIENT_PUBKEY
-AllowedIPs = $CLIENT_ADDRESS/32" >>$WG_CONFIG
+AllowedIPs = $CLIENT_ADDRESS/32" >> $WG_CONFIG
 
 	echo "[Interface]
 PrivateKey = $CLIENT_PRIVKEY
@@ -203,7 +205,7 @@ DNS = $CLIENT_DNS
 PublicKey = $SERVER_PUBKEY
 AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $SERVER_ENDPOINT
-PersistentKeepalive = 25" >$HOME/$CLIENT_NAME-wg0.conf
+PersistentKeepalive = 25" > $HOME/$CLIENT_NAME-wg0.conf
 	qrencode -t ansiutf8 -l L <$HOME/$CLIENT_NAME-wg0.conf
 
 	ip address | grep -q wg0 && wg set wg0 peer "$CLIENT_PUBKEY" allowed-ips "$CLIENT_ADDRESS/32"
