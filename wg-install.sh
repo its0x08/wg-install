@@ -44,7 +44,7 @@ if [ ! -f "$WG_CONFIG" ]; then
 	if [ "$SERVER_HOST" == "" ]; then
 		SERVER_HOST=$(hostname -i)
 		if [ "$INTERACTIVE" == "yes" ]; then
-			read -p "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
+			read -rp "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
 			if [ "$CONFIRM" == "n" ]; then
 				echo "[-] Aborted. Use environment variable SERVER_HOST to set the correct public IP address"
 				exit 125
@@ -63,7 +63,7 @@ if [ ! -f "$WG_CONFIG" ]; then
 		echo "   3) OpenDNS (has phishing protection and other security filters)"
 		echo "   4) Quad9 (Malware protection)"
 		echo "   5) AdGuard DNS (automatically blocks ads)"
-		read -p "[?] DNS (1-5)[1]: " -e -i 1 DNS_CHOICE
+		read -rp "[?] DNS (1-5)[1]: " -e -i 1 DNS_CHOICE
 
 		case $DNS_CHOICE in
 		1)
@@ -179,7 +179,7 @@ else
 	CLIENT_NAME="$1"
 	if [ "$CLIENT_NAME" == "" ]; then
 		echo "[?] Tell me a name for the client config file [no special characters]."
-		read -p "[+] Client name: " -e CLIENT_NAME
+		read -rp "[+] Client name: " -e CLIENT_NAME
 	fi
 	CLIENT_PRIVKEY=$(wg genkey)
 	CLIENT_PUBKEY=$(echo $CLIENT_PRIVKEY | wg pubkey)
