@@ -161,7 +161,7 @@ else
 	### Server is installed, add a new client or remove server
 	echo "[1] Remove WireGuard."
 	echo "[2] Add client."
-	read -p "[+] Choose from above options [1/2]: " -e ADD_REMOVE
+	read -rp "[+] Choose from above options [1/2]: " -e ADD_REMOVE
 	if [ "$ADD_REMOVE" == "1" ]; then
 		echo "[*] Removing WireGuard from the server..."
 		rm -rf $WG_CONFIG;
