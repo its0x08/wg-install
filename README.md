@@ -1,3 +1,4 @@
+
 # wg-install v0.0.4-alpha
 WireGuard autoinstaller written in Bash
 
