@@ -87,22 +87,22 @@ if [ ! -f "$WG_CONFIG" ]; then
 	if [ "$DISTRO" == "Ubuntu" ]; then
 		add-apt-repository ppa:wireguard/wireguard -y
 		apt update
-		apt install linux-headers-$(uname -r) wireguard qrencode iptables-persistent -y
+		apt install linux-headers-"$(uname -r)" wireguard qrencode iptables-persistent -y
 	elif [ "$DISTRO" == "Debian" ]; then
 		echo "deb http://deb.debian.org/debian/ unstable main" >/etc/apt/sources.list.d/unstable.list
 		echo -e 'Package: *\nPin: release a=unstable\nPin-Priority: 90\n' >/etc/apt/preferences.d/limit-unstable
 		apt update
-		apt install linux-headers-$(uname -r) wireguard qrencode iptables-persistent -y
+		apt install linux-headers-"$(uname -r)" wireguard qrencode iptables-persistent -y
 	elif [ "$DISTRO" == "CentOS" ]; then
 		curl -Lo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
 		yum install epel-release -y
 		yum install kernel-headers wireguard-dkms qrencode wireguard-tools -y
 	fi
 
-	SERVER_PRIVKEY=$(wg genkey)
-	SERVER_PUBKEY=$(echo $SERVER_PRIVKEY | wg pubkey)
-	CLIENT_PRIVKEY=$(wg genkey)
-	CLIENT_PUBKEY=$(echo $CLIENT_PRIVKEY | wg pubkey)
+	SERVER_PRIVKEY="$(wg genkey)"
+	SERVER_PUBKEY="$(echo $SERVER_PRIVKEY | wg pubkey)"
+	CLIENT_PRIVKEY="$(wg genkey)"
+	CLIENT_PUBKEY="$(echo $CLIENT_PRIVKEY | wg pubkey)"
 	CLIENT_ADDRESS="${PRIVATE_SUBNET::-4}3"
 
 	mkdir -p /etc/wireguard
@@ -183,14 +183,14 @@ else
 		echo "[?] Tell me a name for the client config file [no special characters]."
 		read -rp "[+] Client name: " -e CLIENT_NAME
 	fi
-	CLIENT_PRIVKEY=$(wg genkey)
-	CLIENT_PUBKEY=$(echo $CLIENT_PRIVKEY | wg pubkey)
-	PRIVATE_SUBNET=$(head -n1 $WG_CONFIG | awk '{print $2}')
-	PRIVATE_SUBNET_MASK=$(echo $PRIVATE_SUBNET | cut -d "/" -f 2)
-	SERVER_ENDPOINT=$(head -n1 $WG_CONFIG | awk '{print $3}')
-	SERVER_PUBKEY=$(head -n1 $WG_CONFIG | awk '{print $4}')
-	CLIENT_DNS=$(head -n1 $WG_CONFIG | awk '{print $5}')
-	LASTIP=$(grep "/32" $WG_CONFIG | tail -n1 | awk '{print $3}' | cut -d "/" -f 1 | cut -d "." -f 4)
+	CLIENT_PRIVKEY="$(wg genkey)"
+	CLIENT_PUBKEY="$(echo $CLIENT_PRIVKEY | wg pubkey)"
+	PRIVATE_SUBNET="$(head -n1 $WG_CONFIG | awk '{print $2}')"
+	PRIVATE_SUBNET_MASK="$(echo $PRIVATE_SUBNET | cut -d "/" -f 2)"
+	SERVER_ENDPOINT="$(head -n1 $WG_CONFIG | awk '{print $3}')"
+	SERVER_PUBKEY="$(head -n1 $WG_CONFIG | awk '{print $4}')"
+	CLIENT_DNS="$(head -n1 $WG_CONFIG | awk '{print $5}')"
+	LASTIP="$(grep "/32" $WG_CONFIG | tail -n1 | awk '{print $3}' | cut -d "/" -f 1 | cut -d "." -f 4)"
 	CLIENT_ADDRESS="${PRIVATE_SUBNET::-4}$((LASTIP + 1))"
 	echo "# $CLIENT_NAME
 [Peer]
