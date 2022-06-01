@@ -1,5 +1,5 @@
 #!/bin/bash
-# wg-install v0.0.14-alpha
+# wg-install v0.0.17-alpha
 
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
@@ -130,8 +130,8 @@ DNS = $CLIENT_DNS
 PublicKey = $SERVER_PUBKEY
 AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $SERVER_HOST:$SERVER_PORT
-PersistentKeepalive = 25" > $HOME/client-wg0.conf
-	qrencode -t ansiutf8 -l L <$HOME/client-wg0.conf
+PersistentKeepalive = 25" > "$HOME/client-wg0.conf"
+	qrencode -t ansiutf8 -l L < "$HOME/client-wg0.conf"
 
 	{ 
 		echo "net.ipv4.ip_forward=1";
@@ -186,13 +186,13 @@ else
 		read -rp "[+] Client name: " -e CLIENT_NAME
 	fi
 	CLIENT_PRIVKEY="$(wg genkey)"
-	CLIENT_PUBKEY="$(echo $CLIENT_PRIVKEY | wg pubkey)"
-	PRIVATE_SUBNET="$(head -n1 $WG_CONFIG | awk '{print $2}')"
-	PRIVATE_SUBNET_MASK="$(echo $PRIVATE_SUBNET | cut -d "/" -f 2)"
-	SERVER_ENDPOINT="$(head -n1 $WG_CONFIG | awk '{print $3}')"
-	SERVER_PUBKEY="$(head -n1 $WG_CONFIG | awk '{print $4}')"
-	CLIENT_DNS="$(head -n1 $WG_CONFIG | awk '{print $5}')"
-	LASTIP="$(grep "/32" $WG_CONFIG | tail -n1 | awk '{print $3}' | cut -d "/" -f 1 | cut -d "." -f 4)"
+	CLIENT_PUBKEY="$(echo "$CLIENT_PRIVKEY" | wg pubkey)"
+	PRIVATE_SUBNET="$(head -n1 "$WG_CONFIG" | awk '{print $2}')"
+	PRIVATE_SUBNET_MASK="$(echo "$PRIVATE_SUBNET" | cut -d "/" -f 2)"
+	SERVER_ENDPOINT="$(head -n1 "$WG_CONFIG" | awk '{print $3}')"
+	SERVER_PUBKEY="$(head -n1 "$WG_CONFIG" | awk '{print $4}')"
+	CLIENT_DNS="$(head -n1 "$WG_CONFIG" | awk '{print $5}')"
+	LASTIP="$(grep "/32" "$WG_CONFIG" | tail -n1 | awk '{print $3}' | cut -d "/" -f 1 | cut -d "." -f 4)"
 	CLIENT_ADDRESS="${PRIVATE_SUBNET::-4}$((LASTIP + 1))"
 	echo "# $CLIENT_NAME
 [Peer]
