@@ -1,5 +1,5 @@
 #!/bin/bash
-# wg-install v0.0.17-alpha
+# wg-install v0.0.18-alpha
 
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
