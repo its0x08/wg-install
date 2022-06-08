@@ -4,9 +4,9 @@
 WG_CONFIG="/etc/wireguard/wg0.conf"
 
 function generate_port {
-	local random_int port
+	local random_int
 	random_int="$(shuf -i 2000-65535 -n 1)"
-	port="$(ss -lau | grep "$random_int" > /dev/null)"
+	ss -lau | grep "$random_int" > /dev/null
 	if [[ "$?" == 1 ]]; then
 		echo "$random_int"
 	else
