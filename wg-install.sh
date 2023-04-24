@@ -43,7 +43,7 @@ if [ ! -f "$WG_CONFIG" ]; then
 	GATEWAY_ADDRESS="${PRIVATE_SUBNET::-4}1"
 
 	if [ "$SERVER_HOST" == "" ]; then
-		SERVER_HOST="$(hostname -i)"
+		SERVER_HOST="$(curl ifconfig.me)"
 		if [ "$INTERACTIVE" == "yes" ]; then
 			read -rp "[i] Servers public IP address is $SERVER_HOST  Is that correct? [y/n]: " -e -i "y" CONFIRM
 			if [ "$CONFIRM" == "n" ]; then
