@@ -1,5 +1,5 @@
 
-# wg-install v0.0.18-alpha
+# wg-install v0.0.19-alpha
 WireGuard autoinstaller written in Bash
 
 [WireGuard](https://www.wireguard.com) [road warrior](http://en.wikipedia.org/wiki/Road_warrior_%28computing%29) installer for Ubuntu, Debian, CentOS and Fedora!
@@ -16,7 +16,7 @@ This script will install automatically the Wireguard server and generate client 
 ### Oneliner:
 ```bash
 wget http://git.io/Jff1k -qO wg.sh && bash wg.sh
-curl http://git.io/Jff1k | bash
+curl -sL http://git.io/Jff1k | bash
 ```
 
 ### Steps to download and run the scripts:
