@@ -36,12 +36,12 @@ fi
 
 if [ "$WG_CONFIG" == "" ]; then
 	WG_CONFIG="/etc/wireguard/wg0.conf"
+	WG_CONFIG_NAME=${$WG_CONFIG:15:-5}
 fi
 
 
 if [ ! -f "$WG_CONFIG" ]; then
 	# Install server and add default client
-	WG_CONFIG_NAME=${$WG_CONFIG:15:-5}
 	INTERACTIVE=${INTERACTIVE:-yes}
 	PRIVATE_SUBNET=${PRIVATE_SUBNET:-"10.9.0.0/24"}
 	PRIVATE_SUBNET_MASK=${PRIVATE_SUBNET##*/}
