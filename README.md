@@ -1,5 +1,5 @@
 
-# wg-install v0.0.19-alpha
+# wg-install v0.1.01
 WireGuard autoinstaller written in Bash
 
 [WireGuard](https://www.wireguard.com) [road warrior](http://en.wikipedia.org/wiki/Road_warrior_%28computing%29) installer for Ubuntu, Debian, CentOS and Fedora!
@@ -40,11 +40,12 @@ wg-quick up config_name
 The script can be configured by setting the following environment variables:
 
 * INTERACTIVE - if set to "no", the script will not prompt for user input
-* PRIVATE_SUBNET - private subnet configuration, "10.9.0.0/24" by default
+* PRIVATE_SUBNET - private subnet configuration, (default: `10.9.0.0/24`)
 * SERVER_HOST - public IP address, detected by default
-* SERVER_PORT - listening port, picked random by default
+* SERVER_PORT - listening port, picked randomly by default
 * CLIENT_DNS - comma serparated DNS servers to use by the client
 * ADD_REMOVE - set to `1` to remove WireGuard or `2` to add new users
+* WG_CONFIG - set config location (default: `/etc/wireguard/wg0.conf`)
 
 
 Copy the file `/root/client-wg0.conf` from a remote server to your local PC

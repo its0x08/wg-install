@@ -1,7 +1,6 @@
 #!/bin/bash
-# wg-install v0.0.18-alpha
+# wg-install v0.1.01
 
-WG_CONFIG="/etc/wireguard/wg0.conf"
 
 function generate_port {
 	local random_int
@@ -14,7 +13,7 @@ function generate_port {
 	fi
 }
 
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" != 0 ]]; then
 	echo "[-] Sorry, you need to run this as root"
 	exit 13
 fi
@@ -35,8 +34,14 @@ else
 	exit 95
 fi
 
+if [ "$WG_CONFIG" == "" ]; then
+	WG_CONFIG="/etc/wireguard/wg0.conf"
+fi
+
+
 if [ ! -f "$WG_CONFIG" ]; then
-	### Install server and add default client
+	# Install server and add default client
+	WG_CONFIG_NAME=${$WG_CONFIG:15:-5}
 	INTERACTIVE=${INTERACTIVE:-yes}
 	PRIVATE_SUBNET=${PRIVATE_SUBNET:-"10.9.0.0/24"}
 	PRIVATE_SUBNET_MASK=${PRIVATE_SUBNET##*/}
@@ -86,16 +91,14 @@ if [ ! -f "$WG_CONFIG" ]; then
 	fi
 
 	if [ "$DISTRO" == "Ubuntu" ]; then
-		add-apt-repository ppa:wireguard/wireguard -y
 		apt update
 		apt install linux-headers-"$(uname -r)" wireguard qrencode iptables-persistent -y
 	elif [ "$DISTRO" == "Debian" ]; then
-		echo "deb http://deb.debian.org/debian/ unstable main" >/etc/apt/sources.list.d/unstable.list
-		echo -e 'Package: *\nPin: release a=unstable\nPin-Priority: 90\n' >/etc/apt/preferences.d/limit-unstable
+		echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
 		apt update
 		apt install linux-headers-"$(uname -r)" wireguard qrencode iptables-persistent -y
 	elif [ "$DISTRO" == "CentOS" ]; then
-		curl -Lo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
+		curl -sLo /etc/yum.repos.d/wireguard.repo https://copr.fedorainfracloud.org/coprs/jdoss/wireguard/repo/epel-7/jdoss-wireguard-epel-7.repo
 		yum install epel-release -y
 		yum install kernel-headers wireguard-dkms qrencode wireguard-tools -y
 	fi
@@ -131,8 +134,8 @@ DNS = $CLIENT_DNS
 PublicKey = $SERVER_PUBKEY
 AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $SERVER_HOST:$SERVER_PORT
-PersistentKeepalive = 25" > "$HOME/client-wg0.conf"
-	qrencode -t ansiutf8 -l L < "$HOME/client-wg0.conf"
+PersistentKeepalive = 25" > "$HOME/client-$WG_CONFIG_NAME.conf"
+	qrencode -t ansiutf8 -l L < "$HOME/client-$WG_CONFIG_NAME.conf"
 
 	{ 
 		echo "net.ipv4.ip_forward=1";
@@ -156,14 +159,14 @@ PersistentKeepalive = 25" > "$HOME/client-wg0.conf"
 		iptables-save > /etc/iptables/rules.v4
 	fi
 
-	systemctl enable wg-quick@wg0.service
-	systemctl start wg-quick@wg0.service
+	systemctl enable wg-quick@$WG_CONFIG_NAME.service
+	systemctl start wg-quick@$WG_CONFIG_NAME.service
 
 	# TODO: unattended updates, apt install dnsmasq ntp
-	echo "[+] Client config --> $HOME/client-wg0.conf"
+	echo "[+] Client config --> $HOME/client-$WG_CONFIG_NAME.conf"
 	echo "[+] Now reboot the server and enjoy your fresh VPN installation! :^)"
 else
-	### Server is installed, add a new client or remove server
+	# Server is installed, add a new client or remove server
 	echo "[1] Remove WireGuard."
 	echo "[2] Add client."
 	read -rp "[+] Choose from above options [1/2]: " -e ADD_REMOVE
@@ -171,11 +174,11 @@ else
 		echo "[*] Removing WireGuard from the server..."
 		rm -rf "$WG_CONFIG";
 		if [ "$DISTRO" == "Ubuntu" ]; then
-			apt install wireguard -y && apt autoremove -y && apt autoclean -y
+			apt remove wireguard* -y && apt autoremove -y && apt autoclean -y
 		elif [ "$DISTRO" == "Debian" ]; then
-			apt install wireguard -y && apt autoremove -y && apt autoclean -y
+			apt remove wireguard* -y && apt autoremove -y && apt autoclean -y
 		elif [ "$DISTRO" == "CentOS" ]; then
-			yum install wireguard-dkms -y
+			yum remove wireguard-dkms -y
 		fi
 
 		echo "[i] WireGuard removed from the server!"
@@ -208,9 +211,9 @@ DNS = $CLIENT_DNS
 PublicKey = $SERVER_PUBKEY
 AllowedIPs = 0.0.0.0/0, ::/0
 Endpoint = $SERVER_ENDPOINT
-PersistentKeepalive = 25" > "$HOME/$CLIENT_NAME-wg0.conf"
-	qrencode -t ansiutf8 -l L < "$HOME/$CLIENT_NAME-wg0.conf"
+PersistentKeepalive = 25" > "$HOME/$CLIENT_NAME-$WG_CONFIG_NAME.conf"
+	qrencode -t ansiutf8 -l L < "$HOME/$CLIENT_NAME-$WG_CONFIG_NAME.conf"
 
-	ip address | grep -q wg0 && wg set wg0 peer "$CLIENT_PUBKEY" allowed-ips "$CLIENT_ADDRESS/32"
-	echo "[+] Client added, new configuration file --> $HOME/$CLIENT_NAME-wg0.conf"
+	ip address | grep -q $WG_CONFIG_NAME && wg set $WG_CONFIG_NAME peer "$CLIENT_PUBKEY" allowed-ips "$CLIENT_ADDRESS/32"
+	echo "[+] Client added, new configuration file --> $HOME/$CLIENT_NAME-$WG_CONFIG_NAME.conf"
 fi
