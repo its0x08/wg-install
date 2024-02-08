@@ -13,10 +13,14 @@ This script will install automatically the Wireguard server and generate client 
 
 ## Usage command
 
-### Oneliner:
+### Oneliners:
 ```bash
 wget http://git.io/Jff1k -qO wg.sh && bash wg.sh
+```
+```bash
 curl http://git.io/Jff1k -sSLo wg.sh && bash wg.sh
+```
+```bash
 /bin/bash -c "$(curl -fsSL http://git.io/Jff1k)"
 ```
 
