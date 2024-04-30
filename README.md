@@ -28,7 +28,7 @@ curl http://git.io/Jff1k -sSLo wg.sh && bash wg.sh
 ```bash
 git clone https://github.com/its0x08/wg-install.git
 cd wg-install
-bash wg.sh
+bash wg-install.sh
 ```
 
 ## Add new client or remove and uninstall WireGuard
